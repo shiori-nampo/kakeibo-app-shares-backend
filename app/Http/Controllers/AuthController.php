@@ -2,12 +2,55 @@
 
 namespace App\Http\Controllers;
 
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use App\Models\User;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Auth;
+use App\Http\Requests\RegisterRequest;
+use App\Http\Requests\LoginRequest;
 
 class AuthController extends Controller
 {
-    public function register()
+    public function register(RegisterRequest $request): JsonResponse
     {
+        $validated = $request->validated();
+        //formRequestにルール書いたらこっちは消して$validatedへ
 
+        $validated['password'] = Hash::make($validated['password']);
+
+        $user = User::create($validated);
+
+
+        return response()->json([
+            'message' => 'ユーザーが登録されました!',
+            'data' => $user
+        ], 201);
+    }
+
+    public function login(LoginRequest $request): JsonResponse
+    {
+        $validated = $request->validated();
+        //ルール消して過去形に
+
+        if (Auth::attempt($validated)) {
+            return response()->json([
+                'message' => 'ログインに成功しました!',
+                'data' => Auth::user()
+            ]); //$validatedを返してしまうと生のパスワードが見れてしまう（禁忌）
+        }
+
+        return response()->json([
+            'message' => 'メールアドレスまたはパスワードが間違っています。',
+        ], 401);
+    }
+
+    public function logout(Request $request): JsonResponse
+    {
+        Auth::logout();
+
+        return response()->json([
+            'message' => 'ログアウトしました',
+        ]);
     }
 }
