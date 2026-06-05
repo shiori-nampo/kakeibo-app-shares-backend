@@ -1,24 +1,41 @@
-*.log
-.DS_Store
+# --- Laravel 標準の無視リスト ---
 .env
 .env.backup
 .env.production
 .phpactor.json
 .phpunit.result.cache
+*.log
+
 /.fleet
 /.idea
 /.nova
 /.phpunit.cache
 /.vscode
 /.zed
+
 /auth.json
 /node_modules
+/vendor
+
 /public/build
 /public/hot
 /public/storage
 /storage/*.key
+/storage/framework/cache/data/
+/storage/logs/
 /storage/pail
-/vendor
+
+# --- Docker 関連 ---
+docker-compose.override.yml
 Homestead.json
 Homestead.yaml
+docker/mysql/data/
+docker/nginx/logs/
+docker/php/logs/
+
+# --- OS・環境系 ---
+.DS_Store
 Thumbs.db
+npm-debug.log
+yarn-error.log
+*.sqlite*
