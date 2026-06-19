@@ -19,36 +19,20 @@ class TodoSeeder extends Seeder
                 'user_id' => 2,
                 'completed_by' => null,
                 'title' => '郵便局へ行く',
-                'type' => 'Todo',
+                'type' => 'todo',
                 'is_completed' => false,
             ],
 
-            [
-                'group_id' => 1,
-                'user_id' => 1,
-                'completed_by' => null,
-                'title' => '卵買う',
-                'type' => 'Shopping',
-                'is_completed' => false,
-            ],
 
             [
                 'group_id' => 2,
                 'user_id' => 3,
                 'completed_by' => 3,
                 'title' => '書類書く',
-                'type' => 'Todo',
+                'type' => 'todo',
                 'is_completed' => true,
             ],
 
-            [
-                'group_id' => 2,
-                'user_id' => 4,
-                'completed_by' => null,
-                'title' => '牛乳買う',
-                'type' => 'Shopping',
-                'is_completed' => false,
-            ],
         ];
 
         foreach ($todos as $todo) {

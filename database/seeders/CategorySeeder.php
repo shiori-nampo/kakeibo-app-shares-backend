@@ -30,6 +30,13 @@ class CategorySeeder extends Seeder
             ['name' => '趣味', 'type' => 'variable'],
             ['name' => 'キッズ', 'type' => 'variable'],
             ['name' => '特別費', 'type' => 'variable'],
+
+            ['name' => '給与', 'type' => 'income'],
+            ['name' => '賞与', 'type' => 'income'],
+            ['name' => '副収入', 'type' => 'income'],
+            ['name' => 'お小遣い', 'type' => 'income'],
+            ['name' => 'その他', 'type' => 'income'],
+
         ];
 
         foreach ($categories as $category) {

@@ -12,7 +12,6 @@ class Transaction extends Model
         'category_id',
         'amount',
         'type',
-        'scope',
         'date',
         'memo',
     ];

@@ -11,11 +11,11 @@ class TodoController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index(): JsonResponse
+    public function index(Request $request): JsonResponse
     {
-        $todos = Todo::all();
+        $todoList = Todo::todo()->where('user_id', $request->user()->id)->get();
 
-        return response()->json($todos);
+        return response()->json($todoList);
     }
 
     /**
@@ -25,9 +25,9 @@ class TodoController extends Controller
     {
         $validated = $request->validate([
             'title' => 'required|max:40',
-            'type' => 'required|in:todo,shopping',
         ]);
 
+        $validated['type'] = 'todo';
         $validated['user_id'] = 1;
         $validated['group_id'] = 1;
 
@@ -49,14 +49,14 @@ class TodoController extends Controller
      */
     public function update(Request $request, Todo $todo): JsonResponse //idではなくtodoにすると先回りしてくれる
     {
-        $todo = Todo::findOrFail($todo);
+        if ($todo->type !== 'todo') {
+            return response()->json(['message' => 'データが見つかりません'], 404);
+        }
 
-        $validated = $request->validate([
-            'title' => 'required|max:40',
-            'type' => 'required|in:todo,shopping',
+
+        $todo->update([
+            'is_completed' => $request->is_completed,
         ]);
-
-        $todo->update($validated);
 
         return response()->json([
             'message' => 'リストを更新しました!',
@@ -70,7 +70,9 @@ class TodoController extends Controller
      */
     public function destroy(Todo $todo): JsonResponse
     {
-        $todo = Todo::findOrFail($todo);
+        if ($todo->type !== 'todo') {
+            return response()->json(['message' => 'データが見つかりません'], 404);
+        }
 
         $todo->delete();
 

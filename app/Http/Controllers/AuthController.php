@@ -9,6 +9,7 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Auth;
 use App\Http\Requests\RegisterRequest;
 use App\Http\Requests\LoginRequest;
+use Illuminate\Auth\Events\Registered;
 
 class AuthController extends Controller
 {
@@ -20,6 +21,11 @@ class AuthController extends Controller
         $validated['password'] = Hash::make($validated['password']);
 
         $user = User::create($validated);
+
+        event(new Registered($user));
+
+
+        Auth::login($user);
 
 
         return response()->json([
@@ -33,21 +39,27 @@ class AuthController extends Controller
         $validated = $request->validated();
         //ルール消して過去形に
 
-        if (Auth::attempt($validated)) {
+        if (!Auth::attempt($validated)) {
             return response()->json([
-                'message' => 'ログインに成功しました!',
-                'data' => Auth::user()
-            ]); //$validatedを返してしまうと生のパスワードが見れてしまう（禁忌）
+                'message' => 'メールアドレスまたはパスワードが間違っています。',
+            ], 401);
         }
 
+        $request->session()->regenerate();
+
         return response()->json([
-            'message' => 'メールアドレスまたはパスワードが間違っています。',
-        ], 401);
+            'message' => 'ログインに成功しました!',
+            'data' => Auth::user()
+        ]);
     }
 
     public function logout(Request $request): JsonResponse
     {
         Auth::logout();
+
+        $request->session()->invalidate();
+
+        $request->session()->regenerateToken();
 
         return response()->json([
             'message' => 'ログアウトしました',

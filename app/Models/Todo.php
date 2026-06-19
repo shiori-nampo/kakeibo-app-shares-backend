@@ -3,10 +3,12 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Builder;
 
 class Todo extends Model
 {
     protected $fillable = [
+        'user_id',
         'group_id',
         'completed_by',
         'title',
@@ -23,5 +25,15 @@ class Todo extends Model
     public function user()
     {
         return $this->belongsTo(User::class);
+    }
+
+    public function scopeShopping(Builder $query): Builder
+    {
+        return $query->where('type', 'shopping');
+    }
+
+    public function scopeTodo(Builder $query): Builder
+    {
+        return $query->where('type', 'todo');
     }
 }

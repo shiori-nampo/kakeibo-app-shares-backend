@@ -25,11 +25,10 @@ class TransactionController extends Controller
     {
         $validated = $request->validate([
             'type' => 'required|in:income,expense',
-            'scope' => 'required' | 'in:personal,shared',
             'date' => 'required|date',
             'memo' => 'nullable|string|max:30',
             'amount' => 'required|integer|min:1',
-            'category_id' => 'required' | 'exists:categories,id',
+            'category_id' => 'required|integer',
         ]);
 
         //ログイン実装前の仮でシーダーを入れる
@@ -66,14 +65,17 @@ class TransactionController extends Controller
 
         $validated = $request->validate([
             'type' => 'required|in:income,expense',
-            'scope' => 'required' | 'in:personal,shared',
             'date' => 'required|date',
             'memo' => 'nullable|string|max:30',
             'amount' => 'required|integer|min:1',
-            'category_id' => 'required' | 'exists:categories,id',
+            'category_id' => 'required|exists:categories,id',
         ]);
 
-        $transaction->update($validated);
+        $filtered = array_filter($validated, function ($value) {
+            return $value !== null;
+        });
+
+        $transaction->update($filtered);
 
         return response()->json([
             'message' => '修正が完了しました!',
