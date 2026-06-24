@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use App\Models\Todo;
+use Illuminate\Support\Facades\Auth;
 
 class TodoController extends Controller
 {
@@ -13,7 +14,19 @@ class TodoController extends Controller
      */
     public function index(Request $request): JsonResponse
     {
-        $todoList = Todo::todo()->where('user_id', $request->user()->id)->get();
+        $user = $request->user();
+
+        if ($user->current_group_id) {
+            $todoList = Todo::todo()
+                ->where('group_id', $user->current_group_id)
+                ->with('completedUser')
+                ->get();
+        } else {
+            $todoList = Todo::todo()
+                ->where('user_id', $user->id)
+                ->with('completedUser')
+                ->get();
+        }
 
         return response()->json($todoList);
     }
@@ -28,14 +41,15 @@ class TodoController extends Controller
         ]);
 
         $validated['type'] = 'todo';
-        $validated['user_id'] = 1;
-        $validated['group_id'] = 1;
+        $validated['user_id'] = $request->user()->id;
+        $validated['group_id'] = $request->user()->current_group_id;
+
 
         $todo = Todo::create($validated);
 
         return response()->json([
             'message' => 'リストに追加されました!',
-            'data' => $todo
+            'data' => $todo->load('completedUser')
         ], 201);
 
     }
@@ -47,20 +61,22 @@ class TodoController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, Todo $todo): JsonResponse //idではなくtodoにすると先回りしてくれる
+    public function update(Request $request, Todo $todo): JsonResponse
     {
         if ($todo->type !== 'todo') {
             return response()->json(['message' => 'データが見つかりません'], 404);
         }
 
+        $completedBy = $request->is_completed ? Auth::id() : null;
 
         $todo->update([
             'is_completed' => $request->is_completed,
+            'completed_by' => $completedBy,
         ]);
 
         return response()->json([
             'message' => 'リストを更新しました!',
-            'data' => $todo
+            'data' => $todo->load('completedUser')
         ]);
 
     }

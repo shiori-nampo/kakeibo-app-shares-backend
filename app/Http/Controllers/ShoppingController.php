@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use App\Models\Todo;
+use Illuminate\Support\Facades\Auth;
 
 class ShoppingController extends Controller
 {
@@ -13,9 +14,20 @@ class ShoppingController extends Controller
      */
     public function index(Request $request): JsonResponse
     {
-        $shoppingList = Todo::shopping()->where('user_id', $request->user()->id)->get();
+        $user = $request->user();
 
-        return response()->json($shoppingList);
+        $query = Todo::shopping()->with('completedUser')
+        ;
+
+        if ($user->current_group_id) {
+            $shoppingList = $query->where('group_id', $user->current_group_id)->get();
+        } else {
+            $shoppingList = $query->where('user_id', $user->id)->get();
+        }
+
+        return response()->json([
+            'data' => $shoppingList
+        ]);
     }
 
     /**
@@ -25,14 +37,17 @@ class ShoppingController extends Controller
     {
         $validated = $request->validate(['title' => 'required|max:40']);
 
-        $shopping = Todo::create([
-            'title' => $validated['title'],
-            'type' => 'shopping',
-            'user_id' => $request->user()->id,
-            'group_id' => $request->user()->current_group_id,
-        ]);
 
-        return response()->json(['message' => 'Shoppingリストに追加しました', 'data' => $shopping], 201);
+        $validated['type'] = 'shopping';
+        $validated['user_id'] = $request->user()->id;
+        $validated['group_id'] = $request->user()->current_group_id;
+
+        $shopping = Todo::create($validated);
+
+        return response()->json([
+            'message' => 'Shoppingリストに追加しました',
+            'data' => $shopping->load('completedUser')
+        ], 201);
     }
 
     /**
@@ -48,8 +63,18 @@ class ShoppingController extends Controller
             return response()->json(['message' => 'データが見つかりません'], 404);
         }
 
-        $shopping->update(['is_completed' => $request->is_completed]);
-        return response()->json(['message' => '更新しました']);
+        $isCompleted = $request->boolean('is_completed');
+        $completedBy = $isCompleted ? Auth::id() : null;
+
+        $shopping->update([
+            'is_completed' => $isCompleted,
+            'completed_by' => $completedBy,
+        ]);
+
+        return response()->json([
+            'message' => '更新しました',
+            'data' => $shopping->load('completedUser')
+        ]);
     }
 
     /**

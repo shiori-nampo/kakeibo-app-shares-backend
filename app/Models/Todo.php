@@ -36,4 +36,14 @@ class Todo extends Model
     {
         return $query->where('type', 'todo');
     }
+
+    public function completedUser()
+    {
+        return $this->belongsTo(User::class, 'completed_by');
+    }
+
+
+    protected $casts = [
+        'is_completed' => 'boolean',
+    ];
 }
